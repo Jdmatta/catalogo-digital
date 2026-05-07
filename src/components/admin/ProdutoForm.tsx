@@ -91,130 +91,173 @@ export default function ProdutoForm({ productId, initialValues }: Props) {
     router.refresh()
   }
 
+  const fieldClass =
+    "w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-green-500/25 focus:border-green-500 transition-all duration-200"
+
+  const labelClass = "block text-[11px] font-semibold text-slate-400 uppercase tracking-[0.1em] mb-2"
+
   return (
-    <form onSubmit={handleSubmit} className="max-w-xl space-y-5">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Nome do produto *</label>
-        <input
-          type="text"
-          required
-          value={values.name}
-          onChange={(e) => set("name", e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          placeholder="Ex: Brigadeiro tradicional"
-        />
+    <form onSubmit={handleSubmit} className="max-w-xl">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5 mb-5">
+        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide pb-2 border-b border-slate-100">
+          Informações do produto
+        </h2>
+
+        <div>
+          <label className={labelClass}>Nome do produto *</label>
+          <input
+            type="text"
+            required
+            value={values.name}
+            onChange={(e) => set("name", e.target.value)}
+            className={fieldClass}
+            placeholder="Ex: Brigadeiro tradicional"
+          />
+        </div>
+
+        <div>
+          <label className={labelClass}>Descrição</label>
+          <textarea
+            rows={3}
+            value={values.description}
+            onChange={(e) => set("description", e.target.value)}
+            className={`${fieldClass} resize-none`}
+            placeholder="Ex: Feito com chocolate belga, embalado individualmente."
+          />
+        </div>
+
+        <div>
+          <label className={labelClass}>Preço (R$) *</label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-medium">R$</span>
+            <input
+              type="text"
+              required
+              inputMode="decimal"
+              value={values.price}
+              onChange={(e) => set("price", e.target.value)}
+              className={`${fieldClass} pl-10`}
+              placeholder="5,00"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className={labelClass}>URL da imagem</label>
+          <input
+            type="url"
+            value={values.imageUrl}
+            onChange={(e) => set("imageUrl", e.target.value)}
+            className={fieldClass}
+            placeholder="https://..."
+          />
+          <p className="text-xs text-slate-400 mt-1.5">
+            Cole o link de uma imagem do Imgur, Google Drive público ou similar.
+          </p>
+        </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-        <textarea
-          rows={3}
-          value={values.description}
-          onChange={(e) => set("description", e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-          placeholder="Ex: Feito com chocolate belga, embalado individualmente."
-        />
-      </div>
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4 mb-5">
+        <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide pb-2 border-b border-slate-100">
+          Categoria
+        </h2>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Preço (R$) *</label>
-        <input
-          type="text"
-          required
-          inputMode="decimal"
-          value={values.price}
-          onChange={(e) => set("price", e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          placeholder="Ex: 5,00"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">URL da imagem</label>
-        <input
-          type="url"
-          value={values.imageUrl}
-          onChange={(e) => set("imageUrl", e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          placeholder="https://..."
-        />
-        <p className="text-xs text-gray-400 mt-1">
-          Cole o link de uma imagem do Imgur, Google Drive público ou similar.
-        </p>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
-        <div className="flex gap-2">
+        <div>
+          <label className={labelClass}>Selecionar categoria</label>
           <select
             value={values.categoryId}
             onChange={(e) => set("categoryId", e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+            className={fieldClass}
           >
             <option value="">Sem categoria</option>
             {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
+              <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </div>
-        <div className="flex gap-2 mt-2">
-          <input
-            type="text"
-            value={newCategory}
-            onChange={(e) => setNewCategory(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCategory())}
-            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            placeholder="Nova categoria..."
-          />
-          <button
-            type="button"
-            onClick={addCategory}
-            className="px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-gray-600"
-          >
-            Adicionar
-          </button>
+
+        <div>
+          <label className={labelClass}>Nova categoria</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addCategory())}
+              className={`${fieldClass} flex-1`}
+              placeholder="Nome da categoria..."
+            />
+            <button
+              type="button"
+              onClick={addCategory}
+              className="px-4 py-3 text-sm border border-slate-200 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all duration-200 text-slate-600 font-medium whitespace-nowrap hover:-translate-y-0.5 active:translate-y-0"
+            >
+              + Adicionar
+            </button>
+          </div>
         </div>
       </div>
 
       {productId && (
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => set("active", !values.active)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              values.active ? "bg-green-600" : "bg-gray-200"
-            }`}
-          >
-            <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                values.active ? "translate-x-6" : "translate-x-1"
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-5">
+          <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wide pb-2 border-b border-slate-100 mb-4">
+            Visibilidade
+          </h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-700">
+                {values.active ? "Produto ativo" : "Produto inativo"}
+              </p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {values.active ? "Visível no catálogo público" : "Oculto do catálogo público"}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => set("active", !values.active)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none ${
+                values.active ? "bg-green-600" : "bg-slate-200"
               }`}
-            />
-          </button>
-          <span className="text-sm text-gray-700">
-            {values.active ? "Produto ativo (visível no catálogo)" : "Produto inativo (oculto)"}
-          </span>
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                  values.active ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
         </div>
       )}
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>
+        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded-xl animate-fade-in mb-4">
+          <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          {error}
+        </div>
       )}
 
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3">
         <button
           type="submit"
           disabled={loading}
-          className="bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium px-6 py-2.5 rounded-lg text-sm transition-colors"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold px-7 py-3 rounded-xl text-sm transition-all duration-200 shadow-md shadow-green-200 hover:shadow-lg hover:shadow-green-200 hover:-translate-y-0.5 active:translate-y-0"
         >
-          {loading ? "Salvando..." : productId ? "Salvar alterações" : "Criar produto"}
+          {loading ? (
+            <>
+              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              Salvando...
+            </>
+          ) : productId ? "Salvar alterações" : "Criar produto"}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="border border-gray-200 hover:bg-gray-50 text-gray-600 font-medium px-6 py-2.5 rounded-lg text-sm transition-colors"
+          className="inline-flex items-center gap-2 border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-600 font-semibold px-7 py-3 rounded-xl text-sm transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
         >
           Cancelar
         </button>
