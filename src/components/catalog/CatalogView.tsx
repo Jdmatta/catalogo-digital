@@ -1,8 +1,30 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { buildWhatsAppUrl } from "@/lib/whatsapp"
 import type { CartItem } from "@/types"
+
+function getCartKey(slug: string) {
+  return `cart_${slug}`
+}
+
+function loadCart(slug: string): CartItem[] {
+  try {
+    const raw = localStorage.getItem(getCartKey(slug))
+    if (!raw) return []
+    return JSON.parse(raw) as CartItem[]
+  } catch {
+    return []
+  }
+}
+
+function saveCart(slug: string, cart: CartItem[]): void {
+  try {
+    localStorage.setItem(getCartKey(slug), JSON.stringify(cart))
+  } catch {
+    // localStorage bloqueado (modo privado, cota cheia) — falha silenciosa
+  }
+}
 
 type Product = {
   id: string
@@ -20,6 +42,7 @@ type Category = {
 }
 
 type Store = {
+  slug: string
   name: string
   description: string | null
   logoUrl: string | null
@@ -30,9 +53,13 @@ type Store = {
 }
 
 export function CatalogView({ store }: { store: Store }) {
-  const [cart, setCart] = useState<CartItem[]>([])
+  const [cart, setCart] = useState<CartItem[]>(() => loadCart(store.slug))
   const [activeCategory, setActiveCategory] = useState<string>("all")
   const [cartOpen, setCartOpen] = useState(false)
+
+  useEffect(() => {
+    saveCart(store.slug, cart)
+  }, [cart, store.slug])
 
   const allProducts: Product[] = [
     ...store.products,
@@ -77,33 +104,44 @@ export function CatalogView({ store }: { store: Store }) {
   const primary = store.primaryColor
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: "#f8fafc" }}>
       {/* Header */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
+      <header className="bg-white border-b border-slate-100 sticky top-0 z-10 shadow-sm">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {store.logoUrl && (
-              <img src={store.logoUrl} alt={store.name} className="w-10 h-10 rounded-full object-cover" />
+            {store.logoUrl ? (
+              <img
+                src={store.logoUrl}
+                alt={store.name}
+                className="w-10 h-10 rounded-xl object-cover shadow-sm"
+              />
+            ) : (
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-sm"
+                style={{ backgroundColor: primary }}
+              >
+                {store.name[0]?.toUpperCase()}
+              </div>
             )}
             <div>
-              <h1 className="font-bold text-gray-900 leading-tight">{store.name}</h1>
+              <h1 className="font-black text-slate-900 leading-tight tracking-tight">{store.name}</h1>
               {store.description && (
-                <p className="text-xs text-gray-500 leading-tight">{store.description}</p>
+                <p className="text-xs text-slate-500 leading-tight mt-0.5">{store.description}</p>
               )}
             </div>
           </div>
 
           <button
             onClick={() => setCartOpen(true)}
-            className="relative p-2 rounded-xl hover:bg-gray-50 transition-colors"
+            className="relative p-2.5 rounded-xl hover:bg-slate-50 transition-all duration-200 hover:scale-105 active:scale-100"
             aria-label="Ver carrinho"
           >
-            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             {cartCount > 0 && (
               <span
-                className="absolute -top-1 -right-1 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold"
+                className="absolute -top-1 -right-1 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-sm animate-fade-in"
                 style={{ backgroundColor: primary }}
               >
                 {cartCount}
@@ -117,10 +155,10 @@ export function CatalogView({ store }: { store: Store }) {
           <div className="max-w-2xl mx-auto px-4 pb-3 flex gap-2 overflow-x-auto scrollbar-hide">
             <button
               onClick={() => setActiveCategory("all")}
-              className={`whitespace-nowrap text-sm px-3 py-1.5 rounded-full font-medium transition-colors ${
+              className={`whitespace-nowrap text-sm px-4 py-1.5 rounded-full font-semibold transition-all duration-200 ${
                 activeCategory === "all"
-                  ? "text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "text-white shadow-sm"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
               }`}
               style={activeCategory === "all" ? { backgroundColor: primary } : {}}
             >
@@ -130,10 +168,10 @@ export function CatalogView({ store }: { store: Store }) {
               <button
                 key={c.id}
                 onClick={() => setActiveCategory(c.id)}
-                className={`whitespace-nowrap text-sm px-3 py-1.5 rounded-full font-medium transition-colors ${
+                className={`whitespace-nowrap text-sm px-4 py-1.5 rounded-full font-semibold transition-all duration-200 ${
                   activeCategory === c.id
-                    ? "text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "text-white shadow-sm"
+                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                 }`}
                 style={activeCategory === c.id ? { backgroundColor: primary } : {}}
               >
@@ -145,70 +183,76 @@ export function CatalogView({ store }: { store: Store }) {
       </header>
 
       {/* Produtos */}
-      <main className="max-w-2xl mx-auto px-4 py-6">
+      <main className="max-w-2xl mx-auto px-4 py-6 pb-28">
         {visibleProducts.length === 0 ? (
-          <div className="text-center py-20 text-gray-400">
-            <p>Nenhum produto disponível.</p>
+          <div className="text-center py-20">
+            <div className="text-4xl mb-4">🛒</div>
+            <p className="text-slate-400 font-medium">Nenhum produto disponível.</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {visibleProducts.map((product) => {
+            {visibleProducts.map((product, i) => {
               const qty = getQty(product.id)
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-2xl border border-gray-100 p-4 flex gap-4 items-start"
+                  className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+                  style={{ animationDelay: `${i * 40}ms` }}
                 >
-                  {product.imageUrl ? (
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="w-20 h-20 rounded-xl object-cover flex-shrink-0 bg-gray-100"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 text-3xl">
-                      📦
-                    </div>
-                  )}
-
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 leading-tight">{product.name}</h3>
-                    {product.description && (
-                      <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{product.description}</p>
+                  <div className="p-4 flex gap-4 items-start">
+                    {product.imageUrl ? (
+                      <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100">
+                        <img
+                          src={product.imageUrl}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0 text-4xl">
+                        📦
+                      </div>
                     )}
-                    <p className="text-base font-bold text-gray-900 mt-2">
-                      R$ {product.price.toFixed(2).replace(".", ",")}
-                    </p>
-                  </div>
 
-                  <div className="flex-shrink-0 flex items-center gap-2">
-                    {qty > 0 ? (
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => removeFromCart(product.id)}
-                          className="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-lg transition-colors"
-                          style={{ borderColor: primary, color: primary }}
-                        >
-                          −
-                        </button>
-                        <span className="w-5 text-center font-semibold text-gray-900">{qty}</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-slate-900 leading-tight text-base">{product.name}</h3>
+                      {product.description && (
+                        <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed">{product.description}</p>
+                      )}
+                      <p className="text-base font-black text-slate-900 mt-2.5">
+                        R$ {product.price.toFixed(2).replace(".", ",")}
+                      </p>
+                    </div>
+
+                    <div className="flex-shrink-0 flex items-center self-center">
+                      {qty > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => removeFromCart(product.id)}
+                            className="w-9 h-9 rounded-full border-2 flex items-center justify-center font-bold text-lg transition-all duration-150 hover:scale-110 active:scale-95"
+                            style={{ borderColor: primary, color: primary }}
+                          >
+                            −
+                          </button>
+                          <span className="w-6 text-center font-black text-slate-900 text-base">{qty}</span>
+                          <button
+                            onClick={() => addToCart(product)}
+                            className="w-9 h-9 rounded-full text-white flex items-center justify-center font-bold text-lg transition-all duration-150 hover:scale-110 active:scale-95 shadow-sm"
+                            style={{ backgroundColor: primary }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
                         <button
                           onClick={() => addToCart(product)}
-                          className="w-8 h-8 rounded-full text-white flex items-center justify-center font-bold text-lg transition-colors"
+                          className="w-9 h-9 rounded-full text-white flex items-center justify-center font-bold text-xl transition-all duration-150 hover:scale-110 active:scale-95 shadow-sm"
                           style={{ backgroundColor: primary }}
                         >
                           +
                         </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => addToCart(product)}
-                        className="w-8 h-8 rounded-full text-white flex items-center justify-center font-bold text-xl transition-colors"
-                        style={{ backgroundColor: primary }}
-                      >
-                        +
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               )
@@ -222,14 +266,14 @@ export function CatalogView({ store }: { store: Store }) {
         <div className="fixed bottom-6 left-0 right-0 flex justify-center px-4 z-20">
           <button
             onClick={() => setCartOpen(true)}
-            className="w-full max-w-sm text-white font-semibold py-4 px-6 rounded-2xl shadow-lg flex items-center justify-between transition-transform active:scale-95"
+            className="w-full max-w-sm text-white font-bold py-4 px-5 rounded-2xl shadow-2xl flex items-center justify-between transition-all duration-200 hover:-translate-y-1 active:translate-y-0 hover:shadow-2xl"
             style={{ backgroundColor: primary }}
           >
-            <span className="bg-white/20 text-white text-sm font-bold px-2 py-0.5 rounded-lg">
+            <span className="bg-white/20 text-white text-sm font-black px-2.5 py-1 rounded-xl">
               {cartCount} {cartCount === 1 ? "item" : "itens"}
             </span>
-            <span>Ver pedido</span>
-            <span>R$ {cartTotal.toFixed(2).replace(".", ",")}</span>
+            <span className="font-bold">Ver pedido</span>
+            <span className="font-black text-base">R$ {cartTotal.toFixed(2).replace(".", ",")}</span>
           </button>
         </div>
       )}
@@ -238,57 +282,74 @@ export function CatalogView({ store }: { store: Store }) {
       {cartOpen && (
         <div className="fixed inset-0 z-30 flex flex-col justify-end">
           <div
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
             onClick={() => setCartOpen(false)}
           />
-          <div className="relative bg-white rounded-t-3xl max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="font-bold text-gray-900 text-lg">Seu pedido</h2>
+          <div className="relative bg-white rounded-t-3xl max-h-[85vh] flex flex-col shadow-2xl animate-slide-up">
+            {/* Drag indicator */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-slate-200 rounded-full" />
+            </div>
+
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <div>
+                <h2 className="font-black text-slate-900 text-lg tracking-tight">Seu pedido</h2>
+                <p className="text-xs text-slate-500 mt-0.5">{cartCount} {cartCount === 1 ? "item" : "itens"}</p>
+              </div>
               <button
                 onClick={() => setCartOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-all duration-200 hover:scale-110 active:scale-95"
               >
-                ✕
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
             <div className="overflow-y-auto flex-1 px-5 py-4 space-y-3">
               {cart.map(({ product, quantity }) => (
-                <div key={product.id} className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900 text-sm">{product.name}</p>
-                    <p className="text-xs text-gray-500">
+                <div key={product.id} className="flex items-center gap-3 bg-slate-50 rounded-2xl p-3">
+                  {product.imageUrl && (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-900 text-sm leading-tight">{product.name}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">
                       R$ {product.price.toFixed(2).replace(".", ",")} × {quantity}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <button
                       onClick={() => removeFromCart(product.id)}
-                      className="w-7 h-7 rounded-full border-2 flex items-center justify-center font-bold leading-none"
+                      className="w-7 h-7 rounded-full border-2 flex items-center justify-center font-bold leading-none transition-all duration-150 hover:scale-110 active:scale-95"
                       style={{ borderColor: primary, color: primary }}
                     >
                       −
                     </button>
-                    <span className="w-4 text-center text-sm font-semibold">{quantity}</span>
+                    <span className="w-5 text-center text-sm font-black text-slate-900">{quantity}</span>
                     <button
                       onClick={() => addToCart(product)}
-                      className="w-7 h-7 rounded-full text-white flex items-center justify-center font-bold"
+                      className="w-7 h-7 rounded-full text-white flex items-center justify-center font-bold transition-all duration-150 hover:scale-110 active:scale-95"
                       style={{ backgroundColor: primary }}
                     >
                       +
                     </button>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900 w-16 text-right">
+                  <span className="text-sm font-black text-slate-900 w-16 text-right flex-shrink-0">
                     R$ {(product.price * quantity).toFixed(2).replace(".", ",")}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="px-5 py-4 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-semibold text-gray-700">Total</span>
-                <span className="font-bold text-xl text-gray-900">
+            <div className="px-5 pt-4 pb-6 border-t border-slate-100 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-slate-500">Total do pedido</span>
+                <span className="font-black text-2xl text-slate-900">
                   R$ {cartTotal.toFixed(2).replace(".", ",")}
                 </span>
               </div>
@@ -296,7 +357,7 @@ export function CatalogView({ store }: { store: Store }) {
                 href={buildWhatsAppUrl(store.whatsapp, cart, store.name)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 text-base transition-colors"
+                className="w-full text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2.5 text-base transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
                 style={{ backgroundColor: primary }}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
