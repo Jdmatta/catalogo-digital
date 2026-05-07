@@ -131,7 +131,7 @@ describe("CatalogView — cart drawer", () => {
     await userEvent.click(screen.getByRole("button", { name: "+" }))
     await userEvent.click(screen.getByText("Ver pedido"))
     // The "Total" label and price share a flex row — scope within that row
-    const totalLabel = screen.getByText("Total")
+    const totalLabel = screen.getByText("Total do pedido")
     const totalRow = totalLabel.closest("div")!
     expect(within(totalRow).getByText("R$ 49,90")).toBeInTheDocument()
   })
