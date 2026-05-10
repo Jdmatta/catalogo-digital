@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 type StoreData = {
   name: string
@@ -14,8 +15,6 @@ export default function ConfiguracoesPage() {
   const [values, setValues] = useState<StoreData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState("")
 
   useEffect(() => {
     fetch("/api/store")
@@ -39,8 +38,6 @@ export default function ConfiguracoesPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSaving(true)
-    setError("")
-    setSuccess(false)
 
     const res = await fetch("/api/store", {
       method: "PUT",
@@ -52,10 +49,9 @@ export default function ConfiguracoesPage() {
 
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? "Erro ao salvar.")
+      toast.error(data.error ?? "Erro ao salvar.")
     } else {
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      toast.success("Configurações salvas!")
     }
   }
 
@@ -182,23 +178,6 @@ export default function ConfiguracoesPage() {
             </div>
           </div>
         </div>
-
-        {error && (
-          <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded-xl animate-fade-in mb-4">
-            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 border border-green-100 px-4 py-3 rounded-xl animate-fade-in mb-4">
-            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            Configurações salvas com sucesso!
-          </div>
-        )}
 
         <button
           type="submit"

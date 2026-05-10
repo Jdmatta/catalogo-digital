@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
+import { registerSchema } from "@/lib/schemas"
 
 export async function POST(req: NextRequest) {
-  const { name, email, password } = await req.json()
+  const body = await req.json()
+  const parsed = registerSchema.safeParse(body)
 
-  if (!name || !email || !password) {
-    return NextResponse.json({ error: "Preencha todos os campos." }, { status: 400 })
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Dados inválidos."
+    return NextResponse.json({ error: message }, { status: 400 })
   }
+
+  const { name, email, password } = parsed.data
 
   const existing = await prisma.user.findUnique({ where: { email } })
   if (existing) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { createCategorySchema } from "@/lib/schemas"
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -25,11 +26,16 @@ export async function POST(req: NextRequest) {
   const store = await prisma.store.findUnique({ where: { ownerId: session.user.id } })
   if (!store) return NextResponse.json({ error: "Loja não encontrada." }, { status: 404 })
 
-  const { name } = await req.json()
-  if (!name) return NextResponse.json({ error: "Nome obrigatório." }, { status: 400 })
+  const body = await req.json()
+  const parsed = createCategorySchema.safeParse(body)
+
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Dados inválidos."
+    return NextResponse.json({ error: message }, { status: 400 })
+  }
 
   const categoria = await prisma.category.create({
-    data: { name, storeId: store.id },
+    data: { name: parsed.data.name, storeId: store.id },
   })
 
   return NextResponse.json(categoria, { status: 201 })

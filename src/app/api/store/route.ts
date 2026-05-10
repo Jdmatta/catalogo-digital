@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { createStoreSchema, updateStoreSchema } from "@/lib/schemas"
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -17,11 +18,15 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ error: "Não autenticado." }, { status: 401 })
 
-  const { name, slug, whatsapp, description } = await req.json()
+  const body = await req.json()
+  const parsed = createStoreSchema.safeParse(body)
 
-  if (!name || !slug || !whatsapp) {
-    return NextResponse.json({ error: "Preencha os campos obrigatórios." }, { status: 400 })
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Dados inválidos."
+    return NextResponse.json({ error: message }, { status: 400 })
   }
+
+  const { name, slug, whatsapp, description } = parsed.data
 
   const slugTaken = await prisma.store.findUnique({ where: { slug } })
   if (slugTaken) {
@@ -42,7 +47,15 @@ export async function PUT(req: NextRequest) {
   const existing = await prisma.store.findUnique({ where: { ownerId: session.user.id } })
   if (!existing) return NextResponse.json({ error: "Loja não encontrada." }, { status: 404 })
 
-  const { name, slug, whatsapp, description, primaryColor } = await req.json()
+  const body = await req.json()
+  const parsed = updateStoreSchema.safeParse(body)
+
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Dados inválidos."
+    return NextResponse.json({ error: message }, { status: 400 })
+  }
+
+  const { name, slug, whatsapp, description, primaryColor } = parsed.data
 
   if (slug && slug !== existing.slug) {
     const slugTaken = await prisma.store.findUnique({ where: { slug } })

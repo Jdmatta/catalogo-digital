@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { createProductSchema } from "@/lib/schemas"
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -26,17 +27,21 @@ export async function POST(req: NextRequest) {
   const store = await prisma.store.findUnique({ where: { ownerId: session.user.id } })
   if (!store) return NextResponse.json({ error: "Loja não encontrada." }, { status: 404 })
 
-  const { name, description, price, imageUrl, categoryId } = await req.json()
+  const body = await req.json()
+  const parsed = createProductSchema.safeParse(body)
 
-  if (!name || price === undefined) {
-    return NextResponse.json({ error: "Nome e preço são obrigatórios." }, { status: 400 })
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Dados inválidos."
+    return NextResponse.json({ error: message }, { status: 400 })
   }
+
+  const { name, description, price, imageUrl, categoryId } = parsed.data
 
   const produto = await prisma.product.create({
     data: {
       name,
       description: description || null,
-      price: Number(price),
+      price,
       imageUrl: imageUrl || null,
       categoryId: categoryId || null,
       storeId: store.id,

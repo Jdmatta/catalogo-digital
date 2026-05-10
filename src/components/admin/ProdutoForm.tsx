@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 type Category = { id: string; name: string }
 
@@ -33,7 +34,6 @@ export default function ProdutoForm({ productId, initialValues }: Props) {
   const [values, setValues] = useState<FormValues>({ ...empty, ...initialValues })
   const [categories, setCategories] = useState<Category[]>([])
   const [newCategory, setNewCategory] = useState("")
-  const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -61,7 +61,6 @@ export default function ProdutoForm({ productId, initialValues }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError("")
     setLoading(true)
 
     const body = {
@@ -83,10 +82,11 @@ export default function ProdutoForm({ productId, initialValues }: Props) {
 
     if (!res.ok) {
       const data = await res.json()
-      setError(data.error ?? "Erro ao salvar produto.")
+      toast.error(data.error ?? "Erro ao salvar produto.")
       return
     }
 
+    toast.success(productId ? "Produto atualizado!" : "Produto criado!")
     router.push("/admin/produtos")
     router.refresh()
   }
@@ -226,15 +226,6 @@ export default function ProdutoForm({ productId, initialValues }: Props) {
               />
             </button>
           </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded-xl animate-fade-in mb-4">
-          <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-          </svg>
-          {error}
         </div>
       )}
 

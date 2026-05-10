@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { updateProductSchema } from "@/lib/schemas"
 
 async function getOwnedProduct(productId: string, userId: string) {
   return prisma.product.findFirst({
@@ -17,16 +18,24 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const existing = await getOwnedProduct(id, session.user.id)
   if (!existing) return NextResponse.json({ error: "Produto não encontrado." }, { status: 404 })
 
-  const { name, description, price, imageUrl, categoryId, active } = await req.json()
+  const body = await req.json()
+  const parsed = updateProductSchema.safeParse(body)
+
+  if (!parsed.success) {
+    const message = parsed.error.errors[0]?.message ?? "Dados inválidos."
+    return NextResponse.json({ error: message }, { status: 400 })
+  }
+
+  const { name, description, price, imageUrl, categoryId, active } = parsed.data
 
   const updated = await prisma.product.update({
     where: { id },
     data: {
       name: name ?? existing.name,
       description: description !== undefined ? description : existing.description,
-      price: price !== undefined ? Number(price) : existing.price,
-      imageUrl: imageUrl !== undefined ? imageUrl : existing.imageUrl,
-      categoryId: categoryId !== undefined ? categoryId : existing.categoryId,
+      price: price !== undefined ? price : existing.price,
+      imageUrl: imageUrl !== undefined ? imageUrl || null : existing.imageUrl,
+      categoryId: categoryId !== undefined ? categoryId || null : existing.categoryId,
       active: active !== undefined ? active : existing.active,
     },
     include: { category: true },
