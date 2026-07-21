@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   const parsed = createStoreSchema.safeParse(body)
 
   if (!parsed.success) {
-    const message = parsed.error.errors[0]?.message ?? "Dados inválidos."
+    const message = parsed.error.issues[0]?.message ?? "Dados inválidos."
     return NextResponse.json({ error: message }, { status: 400 })
   }
 
@@ -51,7 +51,7 @@ export async function PUT(req: NextRequest) {
   const parsed = updateStoreSchema.safeParse(body)
 
   if (!parsed.success) {
-    const message = parsed.error.errors[0]?.message ?? "Dados inválidos."
+    const message = parsed.error.issues[0]?.message ?? "Dados inválidos."
     return NextResponse.json({ error: message }, { status: 400 })
   }
 

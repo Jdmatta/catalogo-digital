@@ -34,7 +34,7 @@ export const updateStoreSchema = z.object({
 export const createProductSchema = z.object({
   name: z.string().min(1, "Nome obrigatório").max(200),
   description: z.string().max(1000).optional(),
-  price: z.number({ invalid_type_error: "Preço inválido" }).nonnegative("Preço deve ser positivo"),
+  price: z.number({ error: "Preço inválido" }).nonnegative("Preço deve ser positivo"),
   imageUrl: z.string().url("URL de imagem inválida").optional().or(z.literal("")),
   categoryId: z.string().cuid().optional().or(z.literal("")),
 })
