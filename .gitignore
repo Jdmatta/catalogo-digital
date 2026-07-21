@@ -29,3 +29,5 @@ next-env.d.ts
 # Claude local
 .claude/
 .clone/
+.vercel
+.env*
