@@ -15,7 +15,11 @@ O **CatálogoDigital** permite que pequenos negócios (lanchonetes, confeitarias
 **Sem taxa por venda. Sem comissão. Só o seu negócio.**
 
 ### Demo
-🔗 [catalogo-digital.vercel.app](https://catalogo-digital.vercel.app) *(em breve)*
+🔗 [catalogo-digital-omega-gold.vercel.app/doces-da-ana](https://catalogo-digital-omega-gold.vercel.app/doces-da-ana)
+
+Painel admin (login de demonstração): [/login](https://catalogo-digital-omega-gold.vercel.app/login) — `demo@catalogo.com` / `123456`
+
+![Catálogo público — loja de demonstração "Doces da Ana"](docs/img/catalogo-publico.png)
 
 ---
 
@@ -46,7 +50,7 @@ O **CatálogoDigital** permite que pequenos negócios (lanchonetes, confeitarias
 | Banco de dados | PostgreSQL |
 | ORM | Prisma |
 | Autenticação | NextAuth.js (Credentials) |
-| Deploy | Vercel + Railway (banco) |
+| Deploy | Vercel + Supabase (banco Postgres) |
 | Linguagem | TypeScript |
 
 ---
@@ -84,13 +88,13 @@ catalogo-digital/
 
 ### Pré-requisitos
 - Node.js 18+
-- PostgreSQL rodando localmente (ou use o Railway)
+- PostgreSQL rodando localmente (ou um projeto grátis no [Supabase](https://supabase.com))
 
 ### Passo a passo
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/seu-usuario/catalogo-digital.git
+git clone https://github.com/Jdmatta/catalogo-digital.git
 cd catalogo-digital
 
 # 2. Instale as dependências
@@ -106,11 +110,14 @@ npx prisma migrate dev
 # 5. (Opcional) Popule com dados de exemplo
 npx prisma db seed
 
-# 6. Inicie o servidor de desenvolvimento
+# 6. Rode os testes (opcional)
+npm test
+
+# 7. Inicie o servidor de desenvolvimento
 npm run dev
 ```
 
-Acesse `http://localhost:3000`
+Acesse `http://localhost:3000`. Login de demonstração (após o seed): `demo@catalogo.com` / `123456`.
 
 ---
 
@@ -136,7 +143,7 @@ NEXTAUTH_URL="http://localhost:3000"
 
 ## Autor
 
-Feito por **[Seu Nome](https://github.com/seu-usuario)** — desenvolvedor web focado em soluções práticas para pequenos negócios.
+Feito por **[Jairo Matta](https://github.com/Jdmatta)** — desenvolvedor fullstack júnior focado em soluções práticas para pequenos negócios.
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat-square&logo=linkedin)](https://linkedin.com/in/seu-perfil)
-[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=flat-square&logo=github)](https://github.com/seu-usuario)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?style=flat-square&logo=linkedin)](https://linkedin.com/in/jdmatta)
+[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=flat-square&logo=github)](https://github.com/Jdmatta)
